@@ -6,6 +6,7 @@ Created on Mon Oct  5 10:41:51 2026
 """
 import pandas as pd
 import numpy as np
+from datetime import datetime as dt
 import io
 
 #Lets create a model that predicts the rate which C02 and temp increase due to people in the room
@@ -36,7 +37,7 @@ return : array of floats
     FilData=np.delete(SortData, rowDelete, axis=0)
     return FilData
 
- #Loading Data
+#Loading Data
 EnvData=pd.read_csv("Documents/Uni/2026/5EnvSensor_MayToDec2024_180kRows.csv")
 JsonData=EnvData["jsondata"]
 TempData=np.ones((len(JsonData),3))
@@ -58,6 +59,28 @@ for time in JsonData:
 TempData=DuplicateDelete(TempData)
 CO2Data=DuplicateDelete(CO2Data)
 
+date=np.ones((len(TempData),1)).astype("str")
+time=np.ones((len(TempData),1)).astype("str")
+for i in range(0,len(TempData)):
+    timestamp=dt.fromtimestamp(TempData[i][0])
+    date[i]=timestamp.strftime('%Y-%m-%d %H:%M:%S')[0:10]
+    time[i]=timestamp.strftime('%Y-%m-%d %H:%M:%S')[11:20]
+    
+TempData=np.column_stack((TempData, date))
+TempData=np.column_stack((TempData, time))
+
+
+date=np.ones((len(CO2Data),1)).astype("str")
+time=np.ones((len(CO2Data),1)).astype("str")
+for i in range(0,len(CO2Data)):
+    timestamp=dt.fromtimestamp(CO2Data[i][0])
+    date[i]=timestamp.strftime('%Y-%m-%d %H:%M:%S')[0:10]
+    time[i]=timestamp.strftime('%Y-%m-%d %H:%M:%S')[11:20]
+    
+CO2Data=np.column_stack((CO2Data, date))
+CO2Data=np.column_stack((CO2Data, time))
+
+
 #Loading Data
 OccupData=pd.read_csv("Documents/Uni/2026/5occupancySensor_MayToDec2024_9MRows.csv")
 #Limit Scope Test
@@ -69,9 +92,40 @@ for u in range(0,len(OccupData)):
     PeopleData[u,0]=OccupData.loc[u]["deviceid"]
     PeopleData[u,1]=OccupData.loc[u]["headcount"]
     PeopleData[u,2]=OccupData.loc[u]["collecteddate"]
+
+#Loading Weather data from https://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=122&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num=86077    
+WeatherData=np.array(pd.read_csv("Documents/Uni/2026/IDCJAC0010_86077_1800_Data.csv"))
+years=[2023,2024,2025,2026] #Years of interest
+
+#Deleting years that are not in range of interest
+delList=[]
+for k in range(0,len(WeatherData)):
+    if WeatherData[k][2] not in years:
+        delList.append(k)
+WeatherData=np.delete(WeatherData, delList, axis=0)
+
+#Putting Date into string format and storing max temp of that day
+date=np.ones((len(WeatherData),1)).astype("str")
+TValue=np.ones((len(WeatherData),1)).astype("float")
+for j in range(0,len(WeatherData)):
+    year=str(WeatherData[j][2])
+    if len(str(WeatherData[j][3]))==1:
+        month="0"+str(WeatherData[j][3])
+    else:
+        month=str(WeatherData[j][3])
+    if len(str(WeatherData[j][4]))==1:
+        day="0"+str(WeatherData[j][4])
+    else:
+        day=str(WeatherData[j][4])
+
+    date[j]=year+"-"+month+"-"+day
+    TValue[j]=WeatherData[j][5]
+
+WeatherExport=np.column_stack((date,TValue))
        
 #Saving Data
 np.save("Documents/Uni/2026/MMA3001 Assignment/TempData.npy", TempData)
 np.save("Documents/Uni/2026/MMA3001 Assignment/CO2Data.npy", CO2Data)
 np.save("Documents/Uni/2026/MMA3001 Assignment/PeopleData.npy", PeopleData)
+np.save("Documents/Uni/2026/MMA3001 Assignment/WeatherExport.npy", WeatherExport)
 
