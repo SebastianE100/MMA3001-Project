@@ -19,6 +19,11 @@ from sklearn.tree import DecisionTreeRegressor, plot_tree
 pd.set_option("display.precision", 4)
 
 OccupData = pd.read_parquet('PeopleData.parquet').sort_values(by='collecteddate')
+
+#Bin Width
+CleanData=OccupData.resample('15min',on='collecteddate').max().reset_index().fillna(0)
+
+
 dayMap = {
     'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 
     'Friday': 4, 'Saturday': 5, 'Sunday': 6
