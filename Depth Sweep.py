@@ -17,7 +17,23 @@ from sklearn.tree import DecisionTreeRegressor, plot_tree
 
 #Import Data
 Data = pd.read_parquet('PeopleData.parquet').sort_values(by='collecteddate')
-interval=30
+
+interval=15
+OccupData=Data
+OccupData=OccupData.resample(str(interval)+'min',on='collecteddate').max().reset_index().fillna(0)
+OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
+
+#Give each day of the week a number
+dayMap = {
+    'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 
+    'Friday': 4, 'Saturday': 5, 'Sunday': 6
+}
+OccupData["dayNum"]=OccupData["Day"].map(dayMap)
+OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
+OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
+DeltaIntervals=int((7*24*60/interval))
+OccupData["Lag"]=OccupData["headcount"].shift(int(DeltaIntervals))
+OccupData=OccupData.dropna(subset=['Lag'])
 
 Test=range(1,7)
 TrainError=[]
@@ -26,26 +42,7 @@ ValError=[]
 WeightError=[]
 dayTimeError=[]
 timeError=[]
-for depth in Test:
-    OccupData=Data
-    OccupData=OccupData.resample(str(interval)+'min',on='collecteddate').max().reset_index().fillna(0)
-    OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
-    
-    #Give each day of the week a number
-    dayMap = {
-        'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 
-        'Friday': 4, 'Saturday': 5, 'Sunday': 6
-    }
-    OccupData["dayNum"]=OccupData["Day"].map(dayMap)
-    OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
-    OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
-    DeltaIntervals=int((7*24*60/interval))
-    OccupData["Lag"]=OccupData["headcount"].shift(int(DeltaIntervals))
-    OccupData=OccupData.dropna(subset=['Lag'])
-    
-    
-    
-    
+for depth in Test:   
     #SplitData
     X = OccupData[["dayNum","Time","Lag"]]
     Y = OccupData[["headcount","Lag"]]

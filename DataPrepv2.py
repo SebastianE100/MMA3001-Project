@@ -71,6 +71,9 @@ Exam2026=OccupData['collecteddate'].between(Sem1ExamY26[0],Sem1ExamY26[1]) | Occ
 OccupData['Class']=Class2024|Class2025|Class2026
 OccupData['Exam']=Exam2024|Exam2025|Exam2026
 
+#Adds the time of the day in hours
+OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
+
 OccupData.to_parquet('PeopleData.parquet')
 
       
