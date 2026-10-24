@@ -28,14 +28,50 @@ print("Min Headcount: "+str(OccupData["headcount"].min()))
 OccupData['collecteddate'] = pd.to_datetime(OccupData['collecteddate'],format="ISO8601", utc=True)
 #Converts time back into Melbourne time
 OccupData['collecteddate'] =pd.to_datetime(OccupData['collecteddate'] , utc=True).dt.tz_convert("Australia/Melbourne")
-CleanData=OccupData.resample('15min',on='collecteddate').max().reset_index().fillna(0)
 
+
+#Needs to filter data
 
 #Finds day of the week
-CleanData['Day'] = CleanData['collecteddate'].dt.day_name()
+OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
+ListofDates = OccupData['collecteddate'].dt.date.drop_duplicates().tolist()
+OccupData=OccupData.resample('15min',on='collecteddate').max().reset_index().fillna(0)
+OccupData['Date'] = OccupData['collecteddate'].dt.date
+OccupData = OccupData[OccupData['Date'].isin(ListofDates)]
+OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
 
 
-CleanData.to_parquet('PeopleData.parquet')
+Sem1Y24=pd.to_datetime(['2024-02-26', '2024-05-27']).tz_localize("Australia/Melbourne")
+Sem1ExamY24=pd.to_datetime(['2024-05-27', '2024-06-21']).tz_localize("Australia/Melbourne")
+
+Sem2Y24=pd.to_datetime(['2024-07-22', '2024-10-21']).tz_localize("Australia/Melbourne")
+Sem2ExamY24=pd.to_datetime(['2024-10-21', '2024-11-15']).tz_localize("Australia/Melbourne")
+
+Sem1Y25=pd.to_datetime(['2025-03-03', '2025-06-02']).tz_localize("Australia/Melbourne")
+Sem1ExamY25=pd.to_datetime(['2025-06-02', '2025-06-27']).tz_localize("Australia/Melbourne")
+
+Sem2Y25=pd.to_datetime(['2025-07-28', '2025-10-27']).tz_localize("Australia/Melbourne")
+Sem2ExamY25=pd.to_datetime(['2025-10-27', '2025-11-19']).tz_localize("Australia/Melbourne")
+
+Sem1Y26=pd.to_datetime(['2026-03-02', '2026-06-01']).tz_localize("Australia/Melbourne")
+Sem1ExamY26=pd.to_datetime(['2026-06-01', '2026-06-26']).tz_localize("Australia/Melbourne")
+
+Sem2Y26=pd.to_datetime(['2026-07-27', '2026-10-26']).tz_localize("Australia/Melbourne")
+Sem2ExamY26=pd.to_datetime(['2026-10-26', '2026-11-18']).tz_localize("Australia/Melbourne")
+
+Class2024=OccupData['collecteddate'].between(Sem1Y24[0],Sem1Y24[1]) | OccupData['collecteddate'].between(Sem2Y24[0],Sem2Y24[1]) 
+Exam2024=OccupData['collecteddate'].between(Sem1ExamY24[0],Sem1ExamY24[1]) | OccupData['collecteddate'].between(Sem2ExamY24[0],Sem2ExamY24[1]) 
+
+Class2025=OccupData['collecteddate'].between(Sem1Y25[0],Sem1Y25[1]) | OccupData['collecteddate'].between(Sem2Y25[0],Sem2Y25[1]) 
+Exam2025=OccupData['collecteddate'].between(Sem1ExamY25[0],Sem1ExamY25[1]) | OccupData['collecteddate'].between(Sem2ExamY25[0],Sem2ExamY25[1]) 
+
+Class2026=OccupData['collecteddate'].between(Sem1Y26[0],Sem1Y26[1]) | OccupData['collecteddate'].between(Sem2Y26[0],Sem2Y26[1]) 
+Exam2026=OccupData['collecteddate'].between(Sem1ExamY26[0],Sem1ExamY26[1]) | OccupData['collecteddate'].between(Sem2ExamY26[0],Sem2ExamY26[1]) 
+
+OccupData['Class']=Class2024|Class2025|Class2026
+OccupData['Exam']=Exam2024|Exam2025|Exam2026
+
+OccupData.to_parquet('PeopleData.parquet')
 
       
 

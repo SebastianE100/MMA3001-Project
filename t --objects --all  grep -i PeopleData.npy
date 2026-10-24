@@ -1,0 +1,29 @@
+[33m8fe5e2a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m added weights to punish false positives
+[33mca276bf[m added depth search plus introduced weights to model
+[33mb8340ed[m Added interval sweep of different complexities of models
+[33mcab879a[m Added decision tree model with random split
+[33m104a3d8[m Made baseline model
+[33m74a55ae[m DataPrepv2 uses pandas
+[33ma655d21[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Linked the max outside temp to inside temp
+[33mcde636b[m Included weather data and convert unix timestamp to date
+[33mad9e0fe[m Update DataPrep to remove duplicates
+[33meeb3a55[m Ignore large data files
+[33m2b059d6[m Merge remote main
+[33m073b337[m Merge remote main
+[33m1637389[m GitBash Test
+[33m155280d[m GitBash Test
+[33m924485b[m Turn Unix timestamp to date and time strings
+[33m2be380b[m Turn Unix timestamp to date and time strings
+[33md538cbe[m data saved as numpy arrays
+[33m3c329f6[m data saved as numpy arrays
+[33m1ab798f[m[33m ([m[1;31morigin/SebastianE100-test-1[m[33m)[m tests speed changes due to width of arrays
+[33maf53755[m Converting raw data to be only temp, co2 level and people in room
+[33me6ba1c1[m Converting raw data to be only temp, co2 level and people in room
+[33mc47e4c3[m Update README.md
+[33m3902801[m Update README.md
+[33m8df0e3c[m First commit
+[33mbebaeb1[m First commit
+[33m5141e17[m First commit
+[33m0b4cb85[m First commit
+[33m7ffaec3[m Initial commit
+[33m18fe69d[m Initial commit
