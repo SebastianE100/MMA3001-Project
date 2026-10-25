@@ -42,7 +42,6 @@ for i in range(0,len(Models)):
         X = OccupData[["Time","dayNum"]]
     elif i==2:
         X = OccupData[["Time","dayNum","Class","Exam"]]
-        print("hi")
     Y = OccupData[["headcount"]]
     
     #SplitData in 5 groups
@@ -106,8 +105,8 @@ for i in range(0,len(Models)):
     plt.plot([1,2,3,4,5],ValR2,label="Validation")
     plt.plot([1,2,3,4,5],BaseR2,label="Baseline")
     plt.xlabel("Fold")
-    plt.ylabel('r2')
-    plt.title("r2 Variation for "+title+" Model")
+    plt.ylabel('Coefficient Of Determination (r²)')
+    plt.title("r² Variation for "+title+" Model")
     plt.xticks(range(1,6))
     plt.legend()
     loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/r2 '+title+'.png'

@@ -70,8 +70,8 @@ for meanVar in ["Time","Day"]:
     plt.plot([1,2,3,4,5],TrainR2,label="Training")
     plt.plot([1,2,3,4,5],ValR2,label="Validation")
     plt.xlabel("Fold")
-    plt.ylabel('r2')
-    plt.title("r2 Variation for "+title+" Model")
+    plt.ylabel('Coefficient Of Determination (r²)')
+    plt.title("r² Variation for "+title+" Model")
     plt.xticks(range(1,6))
     plt.legend()
     loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/r2 '+title+'.png'

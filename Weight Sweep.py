@@ -33,6 +33,9 @@ OccupData["dayNum"]=OccupData["Day"].map(dayMap)
 FalsePosVError=[]
 FalsePosTError=[]
 
+FalsePosBVError=[]
+FalseNegBVError=[]
+
 FalseNegVError=[]
 FalseNegTError=[]
 
@@ -74,6 +77,7 @@ for wValue in weights:
         TrainPredic = Decision_tree.predict(X_train)
         ValPredic = Decision_tree.predict(X_val)
         Base_val=X_val["Time"].astype(str).map(Baseline)
+        Base_train=X_train["Time"].astype(str).map(Baseline)
         
 
         
@@ -88,17 +92,23 @@ for wValue in weights:
     FalseNegVError.append(len(Y_val[(Y_val["headcount"]>ZeroThres)&(ValPredic<=ZeroThres)])/len(Y_val[(Y_val["headcount"]>ZeroThres)]))
     FalseNegTError.append(len(Y_train[(Y_train["headcount"]>ZeroThres)&(TrainPredic<=ZeroThres)])/len(Y_train[(Y_train["headcount"]>ZeroThres)]))
     
-    FalsePosBError.append(len(Y_train[(Y_train["headcount"]<=ZeroThres)&(Base_val>ZeroThres)])/len(Y_train[(Y_train["headcount"]<=ZeroThres)]))
-    FalseNegBError.append(len(Y_train[(Y_train["headcount"]>ZeroThres)&(Base_val<=ZeroThres)])/len(Y_train[(Y_train["headcount"]>ZeroThres)]))
+    FalsePosBVError.append(len(Y_val[(Y_val["headcount"]<=ZeroThres)&(Base_val>ZeroThres)])/len(Y_val[(Y_val["headcount"]<=ZeroThres)]))
+    FalseNegBVError.append(len(Y_val[(Y_val["headcount"]>ZeroThres)&(Base_val<=ZeroThres)])/len(Y_val[(Y_val["headcount"]>ZeroThres)]))
+    
+    FalsePosBError.append(len(Y_train[(Y_train["headcount"]<=ZeroThres)&(Base_train>ZeroThres)])/len(Y_train[(Y_train["headcount"]<=ZeroThres)]))
+    FalseNegBError.append(len(Y_train[(Y_train["headcount"]>ZeroThres)&(Base_train<=ZeroThres)])/len(Y_train[(Y_train["headcount"]>ZeroThres)]))
         
 
-    print(title+" Final R2: "+str(ValR2[-1]))
+    print(title+" Final R²: "+str(ValR2[-1]))
     print(title+" Final RMSE: "+str(ValError[-1])+"\n")
 
     
 plt.figure()
 plt.plot(weights,FalsePosVError,label="False Positive")
 plt.plot(weights,FalseNegVError,label="False Negative")
+plt.plot(weights,FalsePosBVError,label="Baseline False Positive")
+plt.plot(weights,FalseNegBVError,label="Baseline False Negative")
+
 plt.xlabel("Weight Value")
 plt.ylabel('Percentage Error')
 plt.title("Valdiation Weight Sweep")
@@ -110,6 +120,8 @@ plt.show()
 plt.figure()
 plt.plot(weights,FalsePosTError,label="False Positive")
 plt.plot(weights,FalseNegTError,label="False Negative")
+plt.plot(weights,FalsePosBError,label="Baseline False Positive")
+plt.plot(weights,FalseNegBError,label="Baseline False Negative")
 plt.xlabel("Weight Value")
 plt.ylabel('Percentage Error')
 plt.title("Training Weight Sweep")
