@@ -31,15 +31,18 @@ OccupData["dayNum"]=OccupData["Day"].map(dayMap)
 
     
 Models=["Time","Time + Day","Time + Day + Context"]
-for title in Models:
+
+for i in range(0,len(Models)):
+    title=Models[i]
     
-    if title==["Time"]:
+    if i==0:
         X = OccupData[["Time"]]
         
-    elif title==['Time',"Day"]:
+    elif i==1:
         X = OccupData[["Time","dayNum"]]
-    else:
+    elif i==2:
         X = OccupData[["Time","dayNum","Class","Exam"]]
+        print("hi")
     Y = OccupData[["headcount"]]
     
     #SplitData in 5 groups
