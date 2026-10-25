@@ -29,9 +29,6 @@ dayMap = {
 }
 OccupData["dayNum"]=OccupData["Day"].map(dayMap)
 
-Baseline={}
-for hour in OccupData["Time"].unique():
-    Baseline[str(hour)]=np.mean(OccupData[OccupData["Time"].isin([hour])]["headcount"])
     
 Models=["Time","Time + Day","Time + Day + Context"]
 for title in Models:
@@ -55,9 +52,14 @@ for title in Models:
     BaseError=[]
     for trainIndex, valIndex in TSS.split(X):
         
+        
+        
         X_train, X_val, = X.iloc[trainIndex] , X.iloc[valIndex]
         Y_train, Y_val = Y.iloc[trainIndex] , Y.iloc[valIndex]
         
+        Baseline={}
+        for hour in X_train["Time"].unique():
+            Baseline[str(hour)]=np.mean(Y_train[X_train["Time"].isin([hour])]["headcount"])
         
         #Test for different depths
         Decision_tree = DecisionTreeRegressor(
@@ -88,8 +90,8 @@ for title in Models:
     plt.plot([1,2,3,4,5],ValError,label="Validation")
     plt.plot([1,2,3,4,5],BaseError,label="Baseline")
     plt.xlabel("Fold")
-    plt.ylabel('Mean Absolute Error')
-    plt.title("MAE Variation for "+title+" Model")
+    plt.ylabel('Root Mean Square Error')
+    plt.title("RMSE Variation for "+title+" Model")
     plt.xticks(range(1,6))
     plt.legend()
     loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/RMSE '+title+'.png'
