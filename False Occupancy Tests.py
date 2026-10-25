@@ -29,7 +29,7 @@ dayTimeError=[]
 timeError=[]
 for depth in Test:
     OccupData=Data
-    OccupData=OccupData.resample(str(interval)+'min',on='collecteddate').max().reset_index().fillna(0)
+    OccupData=OccupData.resample(str(interval)+'min',on='collecteddate').max().reset_index().dropna()
     OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
     
     #Give each day of the week a number
@@ -41,7 +41,7 @@ for depth in Test:
     OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
     OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
     DeltaIntervals=int((7*24*60/interval))
-    OccupData["Lag"]=OccupData["headcount"].shift(int(DeltaIntervals))
+    OccupData["Lag"]=OccupData["headcount"].shift(int(round(DeltaIntervals)))
     OccupData=OccupData.dropna(subset=['Lag'])
     
     
@@ -79,7 +79,7 @@ for depth in Test:
     
     weight_tree = DecisionTreeRegressor(
         max_depth=depth,
-        min_samples_leaf=3,
+        min_samples_leaf=4,
         random_state=98,
     )
     
@@ -97,18 +97,18 @@ for depth in Test:
     timePredi=time_tree.predict(X_val[["Time"]])  
     WeightPredi=weight_tree.predict(X_val)  
     
-    TrainError.append(len(Y_train[(Y_train["headcount"]==0)&(trainPredi>=ZeroThres)]))
-    ValError.append(len(Y_val[(Y_val["headcount"]==0)&(valPredi>=ZeroThres)]))
-    BaseError.append(len(Y_val[(Y_val["headcount"]==0)&(Y_val["Lag"]>=ZeroThres)]))
-    dayTimeError.append(len(Y_val[(Y_val["headcount"]==0)&(dayTimePredi>=ZeroThres)]))
-    timeError.append(len(Y_val[(Y_val["headcount"]==0)&(timePredi>=ZeroThres)]))
-    WeightError.append(len(Y_val[(Y_val["headcount"]==0)&(WeightPredi>=ZeroThres)]))
+    TrainError.append(1-len(Y_train[(Y_train["headcount"]<2)&(trainPredi<=ZeroThres)])/len(Y_train[(Y_train["headcount"]<2)]))
+    ValError.append(1-len(Y_val[(Y_val["headcount"]<2)&(valPredi<=ZeroThres)])/len(Y_val[(Y_val["headcount"]<2)]))
+    BaseError.append(1-len(Y_val[(Y_val["headcount"]<2)&(Y_val["Lag"]<=ZeroThres)])/len(Y_val[(Y_val["headcount"]<2)]))
+    dayTimeError.append(1-len(Y_val[(Y_val["headcount"]<2)&(dayTimePredi<=ZeroThres)])/len(Y_val[(Y_val["headcount"]<2)]))
+    timeError.append(1-len(Y_val[(Y_val["headcount"]<2)&(timePredi<=ZeroThres)])/len(Y_val[(Y_val["headcount"]<2)]))
+    WeightError.append(1-len(Y_val[(Y_val["headcount"]<2)&(WeightPredi<=ZeroThres)])/len(Y_val[(Y_val["headcount"]<2)]))
 
 ErrorData=pd.DataFrame({
-    'Baseline Model': BaseError,
+    #'Baseline Model': BaseError,
     'Time Only Model': timeError,
     'Time + Day Model': dayTimeError,
-    'Time + Lag + Day Model' : ValError,
-    'Time + Lag + Day + Weights Model' : WeightError
+    'Time + Context + Day Model' : ValError,
+    'Time + Context + Day + Weights Model' : WeightError
     },index=Test)
-ErrorData.plot(title="Decision Tree Model - Depth Testing",xlabel="Depth",ylabel="Zero Person Error")
+ErrorData.plot(title="Decision Tree Model - Weight Valdiation",xlabel="Depth",ylabel="False Positive % Error")

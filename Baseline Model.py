@@ -9,26 +9,89 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import root_mean_squared_error
 
-#Create first model
-OccupData = pd.read_parquet('PeopleData.parquet')
+#Import Data
+OccupData = pd.read_parquet('PeopleData.parquet').sort_values(by='collecteddate')
+OccupData=OccupData.resample('60min',on='collecteddate').max().reset_index().dropna()
 
-#Creating Baseline model prediction is same as 1 week ago
-BaseModel=pd.DataFrame()
-models=[]
-error=[]
-for DeltaT in [1,6,24,24*7]:
-    DeltaIntervals=int((DeltaT*60/15)) #How many 15 mins intervals ago
+TSS=TimeSeriesSplit()#Creates 5 chronological splits in data
+
+
+Baseline={}
+for hour in OccupData["Time"].unique():
+    Baseline[str(hour)]=np.mean(OccupData[OccupData["Time"].isin([hour])]["headcount"])
     
-    Predic=OccupData["headcount"].shift(DeltaIntervals).rename("Predict")#Prediction
-    Model=pd.concat([OccupData["headcount"], Predic], axis=1)
-    Model=Model.dropna(subset=['Predict'])
-    RMSE=root_mean_squared_error(Model["headcount"],Model['Predict'])#Error
-    print(str(DeltaT)+" Day Error: "+str(RMSE))
-    models.append(str(DeltaT))
-    error.append(RMSE)
+Models=["Time","Time + Day","Time + Day + Context"]
+for title in Models:
     
-plt.figure(1)
-plt.bar(models, error)
-plt.title("Baseline Model Comparison")
-plt.xlabel("Hours Delay")
-plt.ylabel("RMSE Error")
+    if title==["Time"]:
+        X = OccupData[["Time"]]
+        
+    elif title==['Time',"Day"]:
+        X = OccupData[["Time","dayNum"]]
+    else:
+        X = OccupData[["Time","dayNum","Class","Exam"]]
+    Y = OccupData[["headcount"]]
+    
+    #SplitData in 5 groups
+    TrainError=[]
+    ValError=[]
+    ValR2=[]
+    TrainR2=[]
+    
+    BaseR2=[]
+    BaseError=[]
+    for trainIndex, valIndex in TSS.split(X):
+        
+        X_train, X_val, = X.iloc[trainIndex] , X.iloc[valIndex]
+        Y_train, Y_val = Y.iloc[trainIndex] , Y.iloc[valIndex]
+        
+        
+        #Test for different depths
+        Decision_tree = DecisionTreeRegressor(
+            max_depth=4,
+            min_samples_leaf=3,
+            random_state=90,
+        )
+
+        Decision_tree.fit(X_train, Y_train)
+
+        TrainPredic = Decision_tree.predict(X_train)
+        ValPredic = Decision_tree.predict(X_val)
+        Base_val=X_val["Time"].astype(str).map(Baseline)
+        
+
+        
+        TrainError.append(root_mean_squared_error(Y_train,TrainPredic))
+        ValError.append(root_mean_squared_error(Y_val,ValPredic))
+        TrainR2.append(r2_score(Y_train,TrainPredic))
+        ValR2.append(r2_score(Y_val,ValPredic))
+        
+        BaseR2.append(r2_score(Y_val,Base_val))
+        BaseError.append(root_mean_squared_error(Y_val,Base_val))
+        
+            
+    plt.figure()
+    plt.plot([1,2,3,4,5],TrainError,label="Training")
+    plt.plot([1,2,3,4,5],ValError,label="Validation")
+    plt.plot([1,2,3,4,5],BaseError,label="Baseline")
+    plt.xlabel("Fold")
+    plt.ylabel('Mean Absolute Error')
+    plt.title("MAE Variation for "+title+" Model")
+    plt.xticks(range(1,6))
+    plt.legend()
+    loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/RMSE '+title+'.png'
+    plt.savefig(loc)
+    
+    
+    plt.figure()
+    plt.plot([1,2,3,4,5],TrainR2,label="Training")
+    plt.plot([1,2,3,4,5],ValR2,label="Validation")
+    plt.plot([1,2,3,4,5],BaseR2,label="Baseline")
+    plt.xlabel("Fold")
+    plt.ylabel('r2')
+    plt.title("r2 Variation for "+title+" Model")
+    plt.xticks(range(1,6))
+    plt.legend()
+    loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/r2 '+title+'.png'
+    plt.savefig(loc)
+    plt.show()
