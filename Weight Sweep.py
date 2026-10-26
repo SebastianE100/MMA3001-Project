@@ -112,8 +112,8 @@ plt.plot(weights,FalseNegBVError,label="Baseline False Negative")
 plt.xlabel("Weight Value")
 plt.ylabel('Percentage Error')
 plt.title("Valdiation Weight Sweep")
-plt.legend()
-loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/ Val Weight Sweep.png'
+plt.legend(loc="upper right")
+loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/Val Weight Sweep.png'
 plt.savefig(loc)
 plt.show()
 
@@ -125,8 +125,8 @@ plt.plot(weights,FalseNegBError,label="Baseline False Negative")
 plt.xlabel("Weight Value")
 plt.ylabel('Percentage Error')
 plt.title("Training Weight Sweep")
-plt.legend()
-loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/ Train Weight Sweep.png'
+plt.legend(loc="upper right")
+loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/Train Weight Sweep.png'
 plt.savefig(loc)
 plt.show()
 

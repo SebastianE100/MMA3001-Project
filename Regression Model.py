@@ -44,6 +44,12 @@ for trainIndex, valIndex in TSS.split(X):
     X_train, X_val, = X.iloc[trainIndex] , X.iloc[valIndex]
     Y_train, Y_val = Y.iloc[trainIndex] , Y.iloc[valIndex]
     
+    print('Fold:')
+    print("Val Mean: "+ str(Y_val.mean())+" Val Std: "+str(Y_val.std()))
+    print("Train Mean: "+ str(Y_train.mean())+" Train Std: "+str(Y_train.std()))
+    print(Y_train.std(), Y_val.std(), Y_val.mean(), Y_train.mean())
+    print()
+    
     Baseline={}
     for hour in X_train["Time"].unique():
         Baseline[str(hour)]=np.mean(Y_train[X_train["Time"].isin([hour])])
@@ -53,7 +59,7 @@ for trainIndex, valIndex in TSS.split(X):
         YPeriodData=Y_train[X_train["Day"].isin([day])]
         if len(PeriodData)==0:
             continue
-        p_fitted = Polynomial.fit(PeriodData["Time"], YPeriodData, deg=3)
+        p_fitted = Polynomial.fit(PeriodData["Time"], YPeriodData, deg=2)
         Model[str(day)]=p_fitted.convert().coef
     Base_val=X_val["Time"].astype(str).map(Baseline)
     
