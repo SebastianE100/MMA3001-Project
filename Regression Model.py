@@ -47,7 +47,6 @@ for trainIndex, valIndex in TSS.split(X):
     print('Fold:')
     print("Val Mean: "+ str(Y_val.mean())+" Val Std: "+str(Y_val.std()))
     print("Train Mean: "+ str(Y_train.mean())+" Train Std: "+str(Y_train.std()))
-    print(Y_train.std(), Y_val.std(), Y_val.mean(), Y_train.mean())
     print()
     
     Baseline={}
