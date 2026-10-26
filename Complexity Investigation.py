@@ -18,9 +18,12 @@ from sklearn.tree import DecisionTreeRegressor
 
 #Import Data
 OccupData = pd.read_parquet('PeopleData.parquet').sort_values(by='collecteddate')
+
+#Resample Data and remove Nan values
 OccupData=OccupData.resample('60min',on='collecteddate').max().reset_index().dropna()
 
-TSS=TimeSeriesSplit()#Creates 5 chronological splits in data
+#Creates 5 chronological splits in data
+TSS=TimeSeriesSplit()
 
 #Give each day of the week a number
 dayMap = {
@@ -29,12 +32,15 @@ dayMap = {
 }
 OccupData["dayNum"]=OccupData["Day"].map(dayMap)
 
-    
+#Define Models to be tested
 Models=["Time","Time + Day","Time + Day + Context"]
 
+#Test all models
 for i in range(0,len(Models)):
+    #Define title of plots
     title=Models[i]
     
+    #Select what data the models have access to
     if i==0:
         X = OccupData[["Time"]]
         
@@ -44,7 +50,7 @@ for i in range(0,len(Models)):
         X = OccupData[["Time","dayNum","Class","Exam"]]
     Y = OccupData[["headcount"]]
     
-    #SplitData in 5 groups
+    #Create list that store performance data
     TrainError=[]
     ValError=[]
     ValR2=[]
@@ -52,32 +58,38 @@ for i in range(0,len(Models)):
     
     BaseR2=[]
     BaseError=[]
+    
+    #Run folds
     for trainIndex, valIndex in TSS.split(X):
         
         
-        
+        #Create validation and training data sets
         X_train, X_val, = X.iloc[trainIndex] , X.iloc[valIndex]
         Y_train, Y_val = Y.iloc[trainIndex] , Y.iloc[valIndex]
         
+        #Create mean time baseline
         Baseline={}
         for hour in X_train["Time"].unique():
             Baseline[str(hour)]=np.mean(Y_train[X_train["Time"].isin([hour])]["headcount"])
         
-        #Test for different depths
+        
+        #Create decison tree model
         Decision_tree = DecisionTreeRegressor(
-            max_depth=4,
+            max_depth=3,
             min_samples_leaf=3,
             random_state=90,
         )
-
+        
+        #Fit model
         Decision_tree.fit(X_train, Y_train)
 
+        #Create predictions
         TrainPredic = Decision_tree.predict(X_train)
         ValPredic = Decision_tree.predict(X_val)
         Base_val=X_val["Time"].astype(str).map(Baseline)
         
 
-        
+        #Save performance criteria
         TrainError.append(root_mean_squared_error(Y_train,TrainPredic))
         ValError.append(root_mean_squared_error(Y_val,ValPredic))
         TrainR2.append(r2_score(Y_train,TrainPredic))
@@ -86,28 +98,31 @@ for i in range(0,len(Models)):
         BaseR2.append(r2_score(Y_val,Base_val))
         BaseError.append(root_mean_squared_error(Y_val,Base_val))
         
-            
+    #Create and save RMSE plot
     plt.figure()
     plt.plot([1,2,3,4,5],TrainError,label="Training")
     plt.plot([1,2,3,4,5],ValError,label="Validation")
-    plt.plot([1,2,3,4,5],BaseError,label="Baseline")
+    plt.plot([1,2,3,4,5],BaseError,label="Baseline Model")
     plt.xlabel("Fold")
     plt.ylabel('Root Mean Square Error')
     plt.title("RMSE Variation for "+title+" Model")
     plt.xticks(range(1,6))
+    plt.yticks([2,2.5,3,3.5,4,4.5,5])
+    
     plt.legend()
     loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/RMSE '+title+'.png'
     plt.savefig(loc)
     
-    
+    #Create and save r2 plot
     plt.figure()
     plt.plot([1,2,3,4,5],TrainR2,label="Training")
     plt.plot([1,2,3,4,5],ValR2,label="Validation")
-    plt.plot([1,2,3,4,5],BaseR2,label="Baseline")
+    plt.plot([1,2,3,4,5],BaseR2,label="Baseline Model")
     plt.xlabel("Fold")
     plt.ylabel('Coefficient Of Determination (r²)')
     plt.title("r² Variation for "+title+" Model")
     plt.xticks(range(1,6))
+    plt.yticks([0.1,0.2,0.3,0.4,0.5])
     plt.legend()
     loc='C:/Users/Octob/Documents/Uni/2026/MMA3001 Phots/r2 '+title+'.png'
     plt.savefig(loc)

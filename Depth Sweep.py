@@ -16,20 +16,25 @@ from sklearn.tree import DecisionTreeRegressor
 
 #Import Data
 OccupData = pd.read_parquet('PeopleData.parquet').sort_values(by='collecteddate')
+
+#Resample data and remove Nan values
 OccupData=OccupData.resample('60min',on='collecteddate').max().reset_index().dropna()
 
-TSS=TimeSeriesSplit()#Creates 5 chronological splits in data
+#Creates 5 chronological splits in data
+TSS=TimeSeriesSplit()
 
 #Give each day of the week a number
 dayMap = {
     'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 
     'Friday': 4, 'Saturday': 5, 'Sunday': 6
 }
+
 OccupData["dayNum"]=OccupData["Day"].map(dayMap)
 
-    
+#Define depths that want to be tested
 depths=[1,2,3,4,5,6]
 
+#List to store performance metrics
 TrainError=[]
 ValError=[]
 ValR2=[]
@@ -41,6 +46,7 @@ BaseError=[]
 for depthVal in depths:
     title="Depth of "+str(depthVal)
     
+    #Define data model has access to
     X = OccupData[["Time","dayNum"]]
     Y = OccupData[["headcount"]]
     
@@ -48,10 +54,11 @@ for depthVal in depths:
     for trainIndex, valIndex in TSS.split(X):
         
         
-        
+        #Define training and valdiation set
         X_train, X_val, = X.iloc[trainIndex] , X.iloc[valIndex]
         Y_train, Y_val = Y.iloc[trainIndex] , Y.iloc[valIndex]
         
+        #Define baseline model
         Baseline={}
         for hour in X_train["Time"].unique():
             Baseline[str(hour)]=np.mean(Y_train[X_train["Time"].isin([hour])]["headcount"])
@@ -63,14 +70,16 @@ for depthVal in depths:
             random_state=90,
         )
 
+        #Fit model
         Decision_tree.fit(X_train, Y_train)
-
+        
+        #Predict future
         TrainPredic = Decision_tree.predict(X_train)
         ValPredic = Decision_tree.predict(X_val)
         Base_val=X_val["Time"].astype(str).map(Baseline)
         
 
-        
+    #Save values
     TrainError.append(root_mean_squared_error(Y_train,TrainPredic))
     ValError.append(root_mean_squared_error(Y_val,ValPredic))
     TrainR2.append(r2_score(Y_train,TrainPredic))
@@ -79,7 +88,7 @@ for depthVal in depths:
     BaseR2.append(r2_score(Y_val,Base_val))
     BaseError.append(root_mean_squared_error(Y_val,Base_val))
         
-        
+#Output figures  
 plt.figure()
 plt.plot(depths,TrainError,label="Training")
 plt.plot(depths,ValError,label="Validation")

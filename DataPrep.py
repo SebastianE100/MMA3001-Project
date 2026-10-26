@@ -34,15 +34,24 @@ OccupData['collecteddate'] =pd.to_datetime(OccupData['collecteddate'] , utc=True
 
 #Finds day of the week
 OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
+#Creates list of dates in original data
 ListofDates = OccupData['collecteddate'].dt.date.drop_duplicates().tolist()
+
+#Resamples data to 60mins interval
 OccupData=OccupData.resample('60min',on='collecteddate').max().reset_index().fillna(0)
+
+#Print length of resampled data
 print("ReSampled Len: "+str(len(OccupData)))
+#Extract date to its own collum
 OccupData['Date'] = OccupData['collecteddate'].dt.date
+#Removes data not in og list
 OccupData = OccupData[OccupData['Date'].isin(ListofDates)]
 print("Removed Len: "+str(len(OccupData)))
+
+#Creates new collum equal to the day of the week the date is
 OccupData['Day'] = OccupData['collecteddate'].dt.day_name()
 
-
+#Definig monash teaching and exam periods for 2024,2025,2026
 Sem1Y24=pd.to_datetime(['2024-02-26', '2024-05-27']).tz_localize("Australia/Melbourne")
 Sem1ExamY24=pd.to_datetime(['2024-05-27', '2024-06-21']).tz_localize("Australia/Melbourne")
 
@@ -61,6 +70,7 @@ Sem1ExamY26=pd.to_datetime(['2026-06-01', '2026-06-26']).tz_localize("Australia/
 Sem2Y26=pd.to_datetime(['2026-07-27', '2026-10-26']).tz_localize("Australia/Melbourne")
 Sem2ExamY26=pd.to_datetime(['2026-10-26', '2026-11-18']).tz_localize("Australia/Melbourne")
 
+#Creating class and exam collums
 Class2024=OccupData['collecteddate'].between(Sem1Y24[0],Sem1Y24[1]) | OccupData['collecteddate'].between(Sem2Y24[0],Sem2Y24[1]) 
 Exam2024=OccupData['collecteddate'].between(Sem1ExamY24[0],Sem1ExamY24[1]) | OccupData['collecteddate'].between(Sem2ExamY24[0],Sem2ExamY24[1]) 
 
@@ -76,6 +86,7 @@ OccupData['Exam']=Exam2024|Exam2025|Exam2026
 #Adds the time of the day in hours
 OccupData["Time"]=OccupData["collecteddate"].dt.hour+OccupData["collecteddate"].dt.minute/60
 
+#Saves model
 OccupData.to_parquet('PeopleData.parquet')
 
       
